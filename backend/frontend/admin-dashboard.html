@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f2027;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .dashboard-container {
+      max-width: 1200px;
+      margin: auto;
+      background: #1c1c1c;
+      padding: 30px;
+      border-radius: 12px;
+    }
+
+    h2 {
+      color: #00ffe7;
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #fff;
+      color: #000;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #00ffe7;
+      color: #000;
+    }
+
+    button {
+      background-color: #00ffe7;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    select {
+      padding: 5px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <h2>📋 Admin Dashboard - All Students</h2>
+    <table id="studentsTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Total 10+2 Marks</th>
+          <th>Branch Choice 1</th>
+          <th>Branch Choice 2</th>
+          <th>Allocate Branch</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Student data -->
+      </tbody>
+    </table>
+
+    <h2>🏆 Ranked Student List (MySQL)</h2>
+    <table id="rankTable">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Total (12th)</th>
+          <th>Pref 1</th>
+          <th>Pref 2</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Ranked data -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // ✅ Fetch all student records (unsorted)
+    fetch("http://localhost:5000/students")
+      .then(res => res.json())
+      .then(data => {
+        const allTable = document.querySelector("#studentsTable tbody");
+        allTable.innerHTML = "";
+
+        data.forEach((student, index) => {
+          const branch1 = student.branch_pref1?.trim() || null;
+          const branch2 = student.branch_pref2?.trim() || null;
+
+          let selectOptions = `<option value="">-- Select --</option>`;
+          if (branch1) {
+            selectOptions += `<option value="${branch1}">${branch1}</option>`;
+          }
+          if (branch2 && branch2 !== branch1) {
+            selectOptions += `<option value="${branch2}">${branch2}</option>`;
+          }
+
+          const dropdownDisabled = !branch1 && !branch2 ? 'disabled' : '';
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${student.fullName}</td>
+            <td>${student.email}</td>
+            <td>${student.total_12_marks}</td>
+            <td>${branch1 || "N/A"}</td>
+            <td>${branch2 || "N/A"}</td>
+            <td>
+              <select id="select-${index}" ${dropdownDisabled}>
+                ${selectOptions}
+              </select>
+              <button onclick="allocateBranch(${index}, '${student.email}')" ${dropdownDisabled}>Allocate</button>
+            </td>
+            <td id="status-${index}">${student.allocated_branch || "Pending"}</td>
+          `;
+          allTable.appendChild(row);
+        });
+      })
+      .catch(err => {
+        console.error("❌ Error loading all students:", err);
+        alert("Failed to load student records.");
+      });
+
+    // 🏆 Fetch ranked students (sorted by total marks descending)
+    fetch("http://localhost:5000/ranked-students")
+      .then(res => res.json())
+      .then(data => {
+        const rankTable = document.querySelector("#rankTable tbody");
+        rankTable.innerHTML = "";
+
+        data.forEach((student, index) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${student.fullName}</td>
+            <td>${student.email}</td>
+            <td>${student.phone}</td>
+            <td>${student.total_12_marks}</td>
+            <td>${student.branch_pref1 ?? 'N/A'}</td>
+            <td>${student.branch_pref2 ?? 'N/A'}</td>
+          `;
+          rankTable.appendChild(row);
+        });
+      })
+      .catch(err => {
+        console.error("❌ Failed to fetch ranked students:", err);
+        alert("Error fetching ranked student list.");
+      });
+
+    // ✅ Save Allocated Branch to DB
+    function allocateBranch(index, email) {
+      const select = document.getElementById(`select-${index}`);
+      const branch = select.value;
+
+      if (!branch) return alert("⚠️ Please select a branch");
+
+      fetch("http://localhost:5000/allocate-branch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, allocated_branch: branch })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById(`status-${index}`).innerText = branch;
+        alert("✅ Branch allocated & saved to DB");
+      })
+      .catch(err => {
+        console.error("❌ Allocation error:", err);
+        alert("Failed to allocate branch.");
+      });
+    }
+  </script>
+</body>
+</html>

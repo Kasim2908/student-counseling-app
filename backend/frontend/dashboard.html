@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #141e30, #243b55);
+      color: #fff;
+      padding: 40px 20px;
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.7);
+      max-width: 800px;
+      margin: auto;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    h2 {
+      text-align: center;
+      color: #00ffe7;
+      margin-bottom: 30px;
+    }
+
+    label {
+      display: block;
+      margin: 15px 0 5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background-color: #2e3b4e;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    input::placeholder {
+      color: #bbb;
+    }
+
+    .section-title {
+      margin-top: 30px;
+      font-size: 20px;
+      color: #00ffe7;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background: #00ffe7;
+      color: #000;
+      font-weight: bold;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+      background: #00bfa5;
+    }
+
+    .success {
+      text-align: center;
+      margin-top: 20px;
+      color: #00ff95;
+      font-weight: bold;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: scale(0.9); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>🎓 Student Information Form</h2>
+
+    <form id="studentForm">
+      <label for="fullName">Full Name</label>
+      <input type="text" id="fullName" name="fullName" placeholder="John Doe" required>
+
+      <label for="dob">Date of Birth</label>
+      <input type="date" id="dob" name="dob" required>
+
+      <label for="phone">Phone Number</label>
+      <input type="tel" id="phone" name="phone" placeholder="9876543210" required>
+
+      <label for="email">Email ID</label>
+      <input type="email" id="email" name="email" placeholder="your@email.com">
+
+
+      <div class="section-title">📘 High School Marks (Class 10)</div>
+
+      <label for="math10">Math</label>
+      <input type="number" id="math10" name="math10" min="0" max="100" required>
+
+      <label for="science10">Science</label>
+      <input type="number" id="science10" name="science10" min="0" max="100" required>
+
+      <label for="english10">English</label>
+      <input type="number" id="english10" name="english10" min="0" max="100" required>
+
+      <label for="hindi10">Hindi</label>
+      <input type="number" id="hindi10" name="hindi10" min="0" max="100" required>
+
+      <div class="section-title">📗 10+2 Marks (Class 12)</div>
+
+      <label for="physics12">Physics</label>
+      <input type="number" id="physics12" name="physics12" min="0" max="100" required>
+
+      <label for="chemistry12">Chemistry</label>
+      <input type="number" id="chemistry12" name="chemistry12" min="0" max="100" required>
+
+      <label for="math12">Math</label>
+      <input type="number" id="math12" name="math12" min="0" max="100" required>
+
+      <div class="section-title">🏛️ Branch Preferences</div>
+
+      <label for="branch_pref1">Branch Preference 1</label>
+      <select id="branch_pref1" name="branch_pref1" required>
+        <option value="" disabled selected>Select Branch</option>
+        <option value="CSE">CSE</option>
+        <option value="ECE">ECE</option>
+        <option value="ME">ME</option>
+        <option value="CE">CE</option>
+      </select>
+
+      <label for="branch_pref2">Branch Preference 2</label>
+      <select id="branch_pref2" name="branch_pref2" required>
+        <option value="" disabled selected>Select Branch</option>
+        <option value="CSE">CSE</option>
+        <option value="ECE">ECE</option>
+        <option value="ME">ME</option>
+        <option value="CE">CE</option>
+      </select>
+
+      <button type="submit" class="btn">Submit Information</button>
+    </form>
+
+    <div id="successMessage" class="success" style="display:none;">
+      ✅ Student information submitted successfully!
+    </div>
+  </div>
+
+  <script>
+    // Autofill email from localStorage
+    window.onload = function () {
+      const emailField = document.getElementById("email");
+      const storedEmail = localStorage.getItem("studentEmail");
+      if (storedEmail) {
+        emailField.value = storedEmail;
+      } else {
+        alert("⚠️ No student email found. Please login again.");
+        window.location.href = "student-login.html";
+      }
+    };
+
+    // Form Submission
+    document.getElementById("studentForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const form = e.target;
+      const emailValue = form.email.value; // Save email before reset
+
+      const data = {
+        fullName: form.fullName.value,
+        dob: form.dob.value,
+        phone: form.phone.value,
+        email: emailValue,
+        math10: Number(form.math10.value),
+        science10: Number(form.science10.value),
+        english10: Number(form.english10.value),
+        hindi10: Number(form.hindi10.value),
+        physics12: Number(form.physics12.value),
+        chemistry12: Number(form.chemistry12.value),
+        math12: Number(form.math12.value),
+        branch_pref1: form.branch_pref1.value,
+        branch_pref2: form.branch_pref2.value
+      };
+
+      fetch("http://localhost:5000/submit-student", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(response => {
+        if (response.message === "Success") {
+          document.getElementById("successMessage").style.display = "block";
+
+          // Reset form (except email)
+          form.reset();
+          form.email.value = emailValue;
+        } else {
+          alert("❌ Submission failed. Please try again.");
+        }
+      })
+      .catch(error => {
+        console.error("❌ Submission Error:", error);
+        alert("❌ Server error while submitting data.");
+      });
+    });
+  </script>
+
+</body>
+</html>
